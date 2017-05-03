@@ -1,0 +1,43 @@
+info:
+  component: Chancellor Config Server
+
+spring:
+  jmx:
+    default-domain: cloud.config.server
+  cloud:
+    config:
+      server:
+        prefix: /config
+        git:
+          clone-on-start: true
+
+encrypt:
+  keyStore:
+    location: classpath:chancellor.jks
+    alias: chancellor
+
+server:
+  use-forward-headers: true
+  ssl:
+    # the key-store-password was generated via the following command:
+    #
+    #     password="$(openssl rand -base64 100 | shasum -a 256 | head -c 64; echo)"
+    #
+    # (keep this value safe/private)
+    #
+    # The key store was generated via the following:
+    #
+    #     keytool -genkeypair -alias chancellor -keyalg RSA -keysize 4096 -keystore chancellor.jks -dname 'CN=config.okta.com,OU="Engineering",O="Okta, Inc.",L="San Francisco",S="California",C=US' -keypass "$password" -storepass "$password"
+    #
+    key-store: ${encrypt.keyStore.location}
+    key-alias: ${encrypt.keyStore.alias}
+    key-store-password: ${ENCRYPT_KEY_STORE_PASSWORD}
+
+management:
+  context-path: /admin
+
+logging:
+  level:
+    root: INFO
+    org.springframework.context.annotation.ConfigurationClassPostProcessor: ERROR
+    com.stormpath.chancellor.ChancellorApplication: INFO
